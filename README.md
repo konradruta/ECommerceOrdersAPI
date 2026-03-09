@@ -5,14 +5,14 @@ REST API stworzone w ASP.NET Core Web API, umożliwiające zarządzanie produkta
 Aplikacja obsługuje operacje CRUD dla produktów i zamówień oraz relację wiele-do-wielu pomiędzy zamówieniami i produktami.
 Projekt został przygotowany jako zadanie rekrutacyjne.
 
-##Funkcjonalności
+## Funkcjonalności
 - dodawanie, edytowanie, usuwanie i pobieranie produktów
 - tworzenie i zarządzanie zamówieniami
 - obsługę relacji wiele-do-wielu między zamówieniami i produktami
 - asynchroniczne operacje na bazie danych
 - globalną obsługę błędów
 
-##Technologie
+## Technologie
 - .NET 8
 - ASP.NET Core Web API
 - Entity Framework Core
@@ -21,14 +21,14 @@ Projekt został przygotowany jako zadanie rekrutacyjne.
 - Swagger / OpenAPI
 - GitHub Actions (CI/CD)
 
-##CI/CD
+## CI/CD
 Projekt wykorzystuje GitHub Actions do automatycznego budowania aplikacji.
 Pipeline uruchamia się po każdym pushu do gałęzi main i wykonuje:
 - restore zależności
 - build projektu
 - uruchomienie testów
 
-##Uruchomienie lokalnie
+## Uruchomienie lokalnie
 1. Sklonuj repozytorium
 2. Skonfiguruj connection string w `appsettings.json`
 3. Wykonaj migracje bazy danych
