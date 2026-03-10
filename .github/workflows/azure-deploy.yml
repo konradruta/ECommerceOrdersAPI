@@ -8,7 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -28,27 +27,30 @@ jobs:
       run: dotnet test --no-build
 
     - name: Publish project
-      run: dotnet publish -c Release -o publish
+      run: dotnet publish -c Release -o ./publish
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: app
-        path: publish
+        path: ./publish
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-
     permissions:
       id-token: write
       contents: read
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
         name: app
+        path: ./app-package
 
     - name: Login to Azure
       uses: azure/login@v2
@@ -57,8 +59,16 @@ jobs:
         tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9EFDBD053C504F66847D4BB557F170C5 }}
         subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_FA80836425834E9380D8A8C113C14257 }}
 
+    - name: Deploy infrastructure with Bicep
+      uses: azure/cli@v2
+      with:
+        inlineScript: |
+          az deployment group create \
+            --resource-group rg-ecommerceorders-API \
+            --template-file ./infra/main.bicep
+
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v3
       with:
         app-name: ecommerceorders-app
-        package: .
+        package: ./app-package
