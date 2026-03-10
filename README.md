@@ -1,4 +1,4 @@
-![CI](https://github.com/konradruta/ECommerceOrdersAPI/actions/workflows/dotnet.yml/badge.svg)
+![CI](https://github.com/konradruta/ECommerceOrdersAPI/actions/workflows/azure-deploy.yml/badge.svg)
 
 # ECommerceOrdersAPI
 REST API stworzone w ASP.NET Core Web API, umożliwiające zarządzanie produktami oraz zamówieniami w systemie e-commerce.
