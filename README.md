@@ -5,6 +5,20 @@ REST API stworzone w ASP.NET Core Web API, umożliwiające zarządzanie produkta
 Aplikacja obsługuje operacje CRUD dla produktów i zamówień oraz relację wiele-do-wielu pomiędzy zamówieniami i produktami.
 Projekt został przygotowany jako zadanie rekrutacyjne.
 
+## Publiczne API
+Aplikacja została wdrożona w Azure App Service i jest dostępna publicznie pod adresem dla Swagger UI:
+https://ecommerceorders-app-ehdzhbgkbshccbe4.westeurope-01.azurewebsites.net/swagger/index.html
+
+## Wykorzystane usługi Azure
+Projekt wykorzystuje następujące usługi w chmurze Microsoft Azure:
+
+- Azure App Service – hosting aplikacji Web API
+- Azure SQL Database – baza danych aplikacji
+- Azure App Service Deployment Center – integracja z GitHub
+
+## Konfiguracja
+Connection string bazy danych nie jest przechowywany w repozytorium.
+
 ## Funkcjonalności
 - dodawanie, edytowanie, usuwanie i pobieranie produktów
 - tworzenie i zarządzanie zamówieniami
@@ -21,12 +35,27 @@ Projekt został przygotowany jako zadanie rekrutacyjne.
 - Swagger / OpenAPI
 - GitHub Actions (CI/CD)
 
+## Endpointy API
+### Orders
+- GET `/api/orders` – pobranie listy wszystkich zamówień
+- GET `/api/orders/{id}` – pobranie zamówienia po ID
+- POST `/api/orders` – utworzenie nowego zamówienia
+- PUT `/api/orders/{id}` – edycja zamówienia
+- DELETE `/api/orders/{id}` – usunięcie zamówienia
+
+### Products
+- GET `/api/products` – pobranie listy wszystkich produktów
+- GET `/api/products/{id}` – pobranie produktu po ID
+- POST `/api/products` – dodanie nowego produktu
+- PUT `/api/products/{id}` – edycja produktu
+- DELETE `/api/products/{id}` – usunięcie produktu
+
 ## CI/CD
-Projekt wykorzystuje GitHub Actions do automatycznego budowania aplikacji.
-Pipeline uruchamia się po każdym pushu do gałęzi main i wykonuje:
-- restore zależności
-- build projektu
-- uruchomienie testów
+Projekt wykorzystuje GitHub Actions do automatycznego budowania
+i wdrażania aplikacji do Azure App Service.
+
+Workflow znajduje się w:
+.github/workflows/azure-deploy.yml
 
 ## Uruchomienie lokalnie
 1. Sklonuj repozytorium
