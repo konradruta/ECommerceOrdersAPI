@@ -57,14 +57,6 @@ jobs:
         tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9EFDBD053C504F66847D4BB557F170C5 }}
         subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_FA80836425834E9380D8A8C113C14257 }}
 
-    - name: Deploy infrastructure with Bicep
-      uses: azure/cli@v2
-      with:
-        inlineScript: |
-          az deployment group create \
-            --resource-group rg-ecommerceorders-API \
-            --template-file ./infra/main.bicep
-
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v3
       with:
