@@ -18,7 +18,7 @@ namespace ECommerceOrdersAPI.Controllers
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders()
         {
             var orders = await _orderService.GetOrders();
-
+            
             return Ok(orders);
         }
 
