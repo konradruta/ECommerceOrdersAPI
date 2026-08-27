@@ -14,13 +14,13 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Restore dependencies
-      run: dotnet restore ECommerceOrdersAPI.sln
+      run: dotnet restore ECommerceOrdersAPI/ECommerceOrdersAPI.csproj
     - name: Build project
-      run: dotnet build ECommerceOrdersAPI.sln --configuration Release --no-restore
+      run: dotnet build ECommerceOrdersAPI/ECommerceOrdersAPI.csproj --configuration Release --no-restore
     - name: Run tests
-      run: dotnet test ECommerceOrdersAPI.sln --no-build
+      run: dotnet test ECommerceOrdersAPI/ECommerceOrdersAPI.csproj --no-build
     - name: Publish project
-      run: dotnet publish ECommerceOrdersAPI.sln -c Release -o publish
+      run: dotnet publish ECommerceOrdersAPI/ECommerceOrdersAPI.csproj -c Release -o publish
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
