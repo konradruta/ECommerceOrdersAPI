@@ -1,0 +1,38 @@
+﻿@using ECommerceOrders.Client.Models
+
+<MudDialog>
+	<DialogContent>
+		<MudText>
+			@Message
+		</MudText>
+	</DialogContent>
+	<DialogActions>
+		<MudButton OnClick="Cancel">
+            Anuluj
+        </MudButton>
+
+		<MudButton Color="Color.Info"
+			Variant="Variant.Filled"
+			OnClick="Confirm">
+				Zatwierdź
+		</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	[CascadingParameter]
+	private IMudDialogInstance MudDialog { get; set; } = null!;
+
+	[Parameter]
+	public string Message { get; set; } = "";
+
+	private void Cancel()
+	{
+		MudDialog.Cancel();
+	}
+
+	private void Confirm()
+	{
+		MudDialog.Close(DialogResult.Ok(true));
+	}
+}
