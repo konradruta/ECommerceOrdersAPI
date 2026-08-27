@@ -1,0 +1,188 @@
+﻿@page "/products"
+@using ECommerceOrders.Client.Models
+@using ECommerceOrders.Client.Pages.Dialogs
+@using ECommerceOrders.Client.Services
+@inject ProductService ProductService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+<MudText Typo="Typo.h4" Class="mb-4">
+    Products
+</MudText>
+
+<MudStack Row="true" AlignItems="AlignItems.Center"
+          Spacing="2"
+          Class="mb-4" >
+
+<MudIconButton Icon="@Icons.Material.Filled.Add"
+    Color="Color.Primary"
+    Size="Size.Medium"
+	title="Dodaj produkt" 
+    OnClick="AddProduct"/>
+
+<MudTextField @bind-Value="searchPhase"
+              Label="Szukaj"
+              Variant="Variant.Outlined" 
+              Style="width: 100%; max-width: 400px;" />
+
+</MudStack>
+
+<MudTable Items="@products" Hover="true" Striped="true" Bordered="true" Dense="true">
+
+    <HeaderContent>
+        <MudTh>Nazwa</MudTh>
+        <MudTh>Opis</MudTh>
+        <MudTh>Cena</MudTh>
+        <MudTh>Stan</MudTh>
+        <MudTh>Akcje</MudTh>
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd>@context.Name</MudTd>
+        <MudTd>@context.Description</MudTd>
+        <MudTd>@context.Price zł</MudTd>
+        <MudTd>@context.StockQuantity</MudTd>
+        <MudTd Style="width: 1%; white-space: nowrap;">
+            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+            Color="Color.Primary"
+            Size="Size.Small"
+            Class="pa-1"
+            title="Edytuj" 
+            OnClick="@(() => EditProduct(context))" />
+
+            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+            Color="Color.Error"
+            Size="Size.Small"
+            Class="pa-1"
+			title="Usuń"
+            OnClick="@(() => DeleteProduct(context.Id))" />
+        </MudTd>
+    </RowTemplate>
+
+</MudTable>
+
+@code {
+    private List<Product>? products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await ProductService.GetProductsAsync();
+    }
+
+    private async Task DeleteProduct(int productId)
+    {
+        var product = products?.FirstOrDefault(p => p.Id == productId);
+
+        if (product == null)
+        {
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            {"Message", $"Czy na pewno chcesz usunąć produkt „{product.Name}”?"}
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.ExtraSmall,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(
+            "Potwierdzenie usunięcia",
+            parameters,
+            options);
+
+        var result = await dialog.Result;
+
+        if (result.Canceled)
+            return;
+
+        var success = await ProductService.DeleteProduct(productId);
+
+        if (success)
+        {
+            products = await ProductService.GetProductsAsync();
+
+            Snackbar.Add("Produkt został usunięty.", Severity.Info);
+        }
+        else
+        {
+            Snackbar.Add("Błąd, produkt nie został usunięty.", Severity.Error);
+        }
+    }
+
+    private async Task EditProduct(Product product)
+    {
+        var parameters = new DialogParameters
+    {
+        { "Product", product }
+    };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<EditProductDialog>(
+            "Edytuj produkt",
+            parameters,
+            options);
+
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is Product editedProduct)
+        {
+            var success = await ProductService.EditProduct(editedProduct);
+
+            if (success)
+            {
+                products = await ProductService.GetProductsAsync();
+
+                Snackbar.Add("Produkt został zaktualizowany.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Wystąpił błąd podczas aktualizacji produktu.", Severity.Error);
+            }
+        }
+    }
+
+    private async Task AddProduct()
+    {
+        var options = new DialogOptions
+            {
+                CloseOnEscapeKey = true,
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true
+            };
+
+        var dialog = await DialogService.ShowAsync<AddProductDialog>(
+            "Dodaj produkt",
+            options
+        );
+
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is Product product)
+        {
+            var success = await ProductService.AddProduct(product);
+
+            if (success)
+            {
+                products = await ProductService.GetProductsAsync();
+
+                Snackbar.Add("Produkt został dodany.", Severity.Success);
+            }
+            else
+            {
+				Snackbar.Add("Wystąpił błąd podczas dodawania produktu.", Severity.Error);
+            }
+        }
+    }
+
+    private string searchPhase = "";
+}
