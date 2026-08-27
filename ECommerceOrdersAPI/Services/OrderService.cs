@@ -69,6 +69,12 @@ namespace ECommerceOrdersAPI.Services
                 {
                     throw new NotFoundException($"Product {p.ProductId} not found");
                 }
+
+                if ((product.StockQuantity -= p.Quantity) < 0)
+                {
+                    throw new NotFoundException("Product out of stock");
+                }
+
                 return product.Price * p.Quantity;
             });
 
@@ -82,7 +88,7 @@ namespace ECommerceOrdersAPI.Services
                 })
                 .ToList()
             };
-
+            
             _dbContext.Orders.Add(newOrder);
             await _dbContext.SaveChangesAsync();
 
