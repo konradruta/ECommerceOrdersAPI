@@ -1,6 +1,6 @@
 ﻿namespace ECommerceOrdersAPI.Models
 {
-    public class OrderProductDto
+    public class OrderProductDtoWithName
     {
         public int ProductId { get; set; }
         public string ProductName { get; set; }

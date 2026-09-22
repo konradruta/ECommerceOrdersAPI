@@ -9,6 +9,6 @@ namespace ECommerceOrdersAPI.Models
         public string Status { get; set; } = "New";
         public DateTime CreatedAt { get; set; }
 
-        public List<OrderProductDto> OrderProducts { get; set; }
+        public List<OrderProductDtoWithName> OrderProducts { get; set; }
     }
 }

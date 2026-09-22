@@ -29,6 +29,13 @@ namespace ECommerceOrdersAPI
                 .ForAllMembers(opt =>
                     opt.Condition((src, dest, srcMember) => srcMember != null));
 
+            CreateMap<OrderProduct, OrderProductDtoWithName>()
+                .ForMember(dest => dest.ProductId,
+                    opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.ProductName,
+                    opt => opt.MapFrom(src => src.Product.Name))
+                .ForMember(dest => dest.Quantity,
+                    opt => opt.MapFrom(src => src.Quantity));
 
         }
     }
