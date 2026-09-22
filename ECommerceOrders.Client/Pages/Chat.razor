@@ -1,0 +1,119 @@
+@page "/chat"
+
+<MudPaper Class="chat-container" Elevation="0">
+
+    <!-- Header -->
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="chat-header">
+
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+            <div class="avatar-status-wrapper">
+                <MudAvatar Class="header-avatar" Size="Size.Medium">
+                    <MudIcon Icon="@Icons.Material.Filled.SmartToy" />
+                </MudAvatar>
+                <span class="status-dot"></span>
+            </div>
+
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.subtitle1" Class="header-title">Asystent AI</MudText>
+                <MudText Typo="Typo.caption" Class="header-subtitle">Aktywny teraz</MudText>
+            </MudStack>
+        </MudStack>
+
+        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Class="header-menu-btn" />
+
+    </MudStack>
+
+
+    <!-- Messages -->
+    <div class="messages" @ref="_messagesContainer">
+
+        @if (!Messages.Any())
+        {
+            <div class="empty-state">
+                <MudIcon Icon="@Icons.Material.Filled.ChatBubbleOutline" Class="empty-state-icon" />
+                <MudText Typo="Typo.body2" Class="empty-state-text">Napisz wiadomość, żeby zacząć rozmowę</MudText>
+            </div>
+        }
+
+        @foreach (var group in GroupedMessages)
+        {
+            <div class="message-group">
+
+                @foreach (var (message, isLast) in group.Messages.Select((m, i) => (m, i == group.Messages.Count - 1)))
+                {
+                    <div class="message-row @(group.IsUser ? "row-user" : "row-bot")">
+
+                        @if (!group.IsUser)
+                        {
+                            <MudAvatar Size="Size.Small" Class="@("msg-avatar" + (isLast ? "" : " avatar-hidden"))">
+                                <MudIcon Icon="@Icons.Material.Filled.SmartToy" Size="Size.Small" />
+                            </MudAvatar>
+                        }
+
+                        <div class="bubble-wrapper">
+                            <div class="@(group.IsUser ? "message user-message" : "message bot-message")">
+                                <MudText Typo="Typo.body2">@message.Text</MudText>
+                            </div>
+
+                            @if (isLast)
+                            {
+                                <MudText Typo="Typo.caption" Class="@("timestamp " + (group.IsUser ? "timestamp-user" : "timestamp-bot"))">
+                                    @message.Timestamp.ToString("HH:mm")
+                                </MudText>
+                            }
+                        </div>
+
+                        @if (group.IsUser)
+                        {
+                            <MudAvatar Size="Size.Small" Class="@("msg-avatar" + (isLast ? "" : " avatar-hidden"))">
+                                <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                            </MudAvatar>
+                        }
+
+                    </div>
+                }
+
+            </div>
+        }
+
+        @if (IsTyping)
+        {
+            <div class="message-row row-bot">
+                <MudAvatar Size="Size.Small" Class="msg-avatar">
+                    <MudIcon Icon="@Icons.Material.Filled.SmartToy" Size="Size.Small" />
+                </MudAvatar>
+                <div class="message bot-message typing-bubble">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+        }
+
+        <div class="scroll-anchor" @ref="_scrollAnchor"></div>
+
+    </div>
+
+
+    <!-- Input -->
+    <div class="chat-input">
+
+        <MudTextField @bind-Value="Input"
+                      Placeholder="Napisz wiadomość..."
+                      Variant="Variant.Text"
+                      Class="chat-textfield"
+                      FullWidth="true"
+                      Lines="1"
+                      MaxLines="5"
+                      AutoGrow="true"
+                      OnKeyDown="HandleKeyDown" />
+
+        <MudIconButton Icon="@Icons.Material.Filled.Send"
+                       Class="send-btn"
+                       Size="Size.Medium"
+                       Disabled="@string.IsNullOrWhiteSpace(Input)"
+                       OnClick="SendMessage" />
+
+    </div>
+
+</MudPaper>

@@ -5,11 +5,13 @@
 @inject ProductService ProductService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+
 <MudText Typo="Typo.h4" Class="mb-4">
     Products
 </MudText>
 
 <MudStack Row="true" AlignItems="AlignItems.Center"
+          Justify="Justify.FlexStart"
           Spacing="2"
           Class="mb-4" >
 
@@ -20,9 +22,18 @@
     OnClick="AddProduct"/>
 
 <MudTextField @bind-Value="searchPhase"
+              @bind-Value:after="OnSearchInput"
               Label="Szukaj"
-              Variant="Variant.Outlined" 
-              Style="width: 100%; max-width: 400px;" />
+              Variant="Variant.Outlined"
+              Class="flex-grow-0"
+              Style="max-width: 400px; flex: none" />
+
+<MudIconButton Icon="@Icons.Material.Filled.Search"
+            Color="Color.Primary"
+            Size="Size.Medium"
+            title="Wyszukaj produkt"
+                   OnClick="OnSearchInput" />
+
 
 </MudStack>
 
@@ -60,129 +71,6 @@
 
 </MudTable>
 
-@code {
-    private List<Product>? products;
-
-    protected override async Task OnInitializedAsync()
-    {
-        products = await ProductService.GetProductsAsync();
-    }
-
-    private async Task DeleteProduct(int productId)
-    {
-        var product = products?.FirstOrDefault(p => p.Id == productId);
-
-        if (product == null)
-        {
-            return;
-        }
-
-        var parameters = new DialogParameters
-        {
-            {"Message", $"Czy na pewno chcesz usunąć produkt „{product.Name}”?"}
-        };
-
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.ExtraSmall,
-            FullWidth = true
-        };
-
-        var dialog = await DialogService.ShowAsync<ConfirmDialog>(
-            "Potwierdzenie usunięcia",
-            parameters,
-            options);
-
-        var result = await dialog.Result;
-
-        if (result.Canceled)
-            return;
-
-        var success = await ProductService.DeleteProduct(productId);
-
-        if (success)
-        {
-            products = await ProductService.GetProductsAsync();
-
-            Snackbar.Add("Produkt został usunięty.", Severity.Info);
-        }
-        else
-        {
-            Snackbar.Add("Błąd, produkt nie został usunięty.", Severity.Error);
-        }
-    }
-
-    private async Task EditProduct(Product product)
-    {
-        var parameters = new DialogParameters
-    {
-        { "Product", product }
-    };
-
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.Small,
-            FullWidth = true
-        };
-
-        var dialog = await DialogService.ShowAsync<EditProductDialog>(
-            "Edytuj produkt",
-            parameters,
-            options);
-
-        var result = await dialog.Result;
-
-        if (!result.Canceled && result.Data is Product editedProduct)
-        {
-            var success = await ProductService.EditProduct(editedProduct);
-
-            if (success)
-            {
-                products = await ProductService.GetProductsAsync();
-
-                Snackbar.Add("Produkt został zaktualizowany.", Severity.Success);
-            }
-            else
-            {
-                Snackbar.Add("Wystąpił błąd podczas aktualizacji produktu.", Severity.Error);
-            }
-        }
-    }
-
-    private async Task AddProduct()
-    {
-        var options = new DialogOptions
-            {
-                CloseOnEscapeKey = true,
-                MaxWidth = MaxWidth.Small,
-                FullWidth = true
-            };
-
-        var dialog = await DialogService.ShowAsync<AddProductDialog>(
-            "Dodaj produkt",
-            options
-        );
-
-        var result = await dialog.Result;
-
-        if (!result.Canceled && result.Data is Product product)
-        {
-            var success = await ProductService.AddProduct(product);
-
-            if (success)
-            {
-                products = await ProductService.GetProductsAsync();
-
-                Snackbar.Add("Produkt został dodany.", Severity.Success);
-            }
-            else
-            {
-				Snackbar.Add("Wystąpił błąd podczas dodawania produktu.", Severity.Error);
-            }
-        }
-    }
-
-    private string searchPhase = "";
-}
+<MudButton>
+    1
+</MudButton>

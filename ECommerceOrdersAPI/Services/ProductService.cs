@@ -9,6 +9,7 @@ namespace ECommerceOrdersAPI.Services
     public interface IProductService
     {
         Task<IEnumerable<ProductDto>> GetProducts();
+        Task<PagedResult<ProductDto>> GetAndSearchProducts(string productName, int pageNumber, int pageSize, CancellationToken cancellation = default);
         Task<ProductDto> GetProductById(int id);
         Task<int> AddProduct(AddProductDto dto);
         Task<bool> EditProduct(int id, EditProductDto dto);
@@ -32,6 +33,38 @@ namespace ECommerceOrdersAPI.Services
             var productsDto = _mapper.Map<List<ProductDto>>(products);
 
             return productsDto;
+        }
+        private const int MaxPageSize = 100;
+
+        public async Task<PagedResult<ProductDto>> GetAndSearchProducts(string productName, int pageNumber, int pageSize, CancellationToken cancellation = default)
+        {
+            if (productName == null || productName.Length < 3)
+            {
+                throw new Exception("Search phrase must be at least 3 characters long.");
+            }
+
+            pageNumber = pageNumber <= 0 ? 1 : pageNumber;
+            pageSize = pageSize <= 0 ? 10 : Math.Min(pageSize, MaxPageSize);
+
+            var query = _dbContext.Products
+                .AsQueryable()
+                .Where(p => p.Name.Contains(productName));
+
+            var totalCount = await query.CountAsync(cancellation);
+
+            var products = await query
+                .OrderBy(p => p.Name)
+                .Skip(pageSize * (pageNumber - 1))
+                .Take(pageSize)
+                .ToListAsync(cancellation);
+
+            return new PagedResult<ProductDto>
+            {
+                Items = _mapper.Map<List<ProductDto>>(products),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
         }
 
         public async Task<ProductDto> GetProductById(int id)
