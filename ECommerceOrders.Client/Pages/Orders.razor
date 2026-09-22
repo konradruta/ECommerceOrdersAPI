@@ -1,0 +1,267 @@
+﻿@page "/orders"
+
+@using ECommerceOrders.Client.Models
+@using ECommerceOrders.Client.Pages.Dialogs
+@using ECommerceOrders.Client.Services
+
+@inject OrderService OrderService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">
+    Orders
+</MudText>
+
+<MudStack Row="true"
+          AlignItems="AlignItems.Center"
+          Spacing="2"
+          Class="mb-4">
+
+    <MudIconButton Icon="@Icons.Material.Filled.Add"
+                   Color="Color.Primary"
+                   Size="Size.Medium"
+                   title="Dodaj zamówienie"
+                   OnClick="AddOrder"/>
+
+    <MudTextField @bind-Value="searchPhase"
+                  Label="Szukaj"
+                  Variant="Variant.Outlined"
+                  Style="width: 100%; max-width: 400px;" />
+
+</MudStack>
+
+@if (orders is null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else
+{
+    <MudTable Items="@orders"
+              Hover="true"
+              Striped="true"
+              Bordered="true"
+              Dense="true">
+
+        <HeaderContent>
+            <MudTh>Numer zamówienia</MudTh>
+            <MudTh>Data zamówienia</MudTh>
+            <MudTh>Zamówione produkty</MudTh>
+            <MudTh>Łączna kwota</MudTh>
+            <MudTh>Status zamówienia</MudTh>
+            <MudTh>Akcje</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+
+            <MudTd DataLabel="Numer zamówienia">
+                #@context.Id
+            </MudTd>
+
+            <MudTd DataLabel="Data zamówienia">
+                @context.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+            </MudTd>
+
+            <MudTd DataLabel="Zamówione produkty">
+                @foreach (var orderProduct in context.OrderProducts)
+                {
+                    <div>
+                        @orderProduct.ProductName × @orderProduct.Quantity
+                    </div>
+                }
+            </MudTd>
+
+            <MudTd DataLabel="Łączna kwota">
+                @context.TotalAmount.ToString("0.00") zł
+            </MudTd>
+
+            <MudTd DataLabel="Status zamówienia">
+                @switch (context.Status)
+                {
+                    case "Zakończone":
+                        <MudChip T="string"
+                                 Color="Color.Success"
+                                 Size="Size.Small">
+                            Zakończone
+                        </MudChip>
+                        break;
+                    case "Anulowane":
+                        <MudChip T="string"
+                                Color="Color.Error"
+                                Size="Size.Small">
+                                Anulowane
+                        </MudChip>
+                        break;
+                    case "New":
+                        <MudChip T="string"
+                            Color="Color.Transparent"
+                            Size="Size.Small">
+                            Nowe
+                        </MudChip>
+                        break;
+                    default:
+                        <MudChip T="string"
+                                 Color="Color.Warning"
+                                 Size="Size.Small">
+                            @context.Status
+                        </MudChip>
+                        break;
+				}
+            </MudTd>
+
+            <MudTd DataLabel="Akcje"
+                   Style="width: 1%; white-space: nowrap;">
+
+                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                               Color="Color.Primary"
+                               Size="Size.Small"
+                               Class="pa-1"
+                               title="Edytuj"
+                               OnClick="@(() => EditOrder(context))"/>
+
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               Color="Color.Error"
+                               Size="Size.Small"
+                               Class="pa-1"
+                               title="Usuń" 
+                               OnClick="@(() => DleteOrder(context.Id))"
+                               />
+
+            </MudTd>
+
+        </RowTemplate>
+
+    </MudTable>
+}
+
+@code {
+    private List<Order>? orders;
+
+    private string searchPhase = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        orders = await OrderService.GetOrdersAsync();
+    }
+
+    private async Task DleteOrder(int orderId)
+    {
+        var order = orders?.FirstOrDefault(o => o.Id == orderId);
+
+        if (order == null)
+            return;
+
+        var parameters = new DialogParameters
+        {
+            {"Message", $"Czy na pewno chcesz usunąć zamówienie o numerze {order.Id}?"}
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.ExtraSmall,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(
+            "Potwierdzenie usunięcia",
+            parameters,
+            options);
+
+        var result = await dialog.Result;
+
+        if (result.Canceled)
+            return;
+
+        var success = await OrderService.DeleteOrder(orderId);
+        if (success)
+        {
+            orders = await OrderService.GetOrdersAsync();
+
+            Snackbar.Add("Zamówienie zostało usunięte", Severity.Warning);
+        }
+        else
+        {
+            Snackbar.Add("Nie udało usunąć się zamówienia", Severity.Error);
+        }
+    }
+
+    private async Task EditOrder(Order order)
+    {
+        var parameters = new DialogParameters
+        {
+            {"Order", order}
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<EditOrderDialog>(
+            "Edytuj produkt",
+            parameters,
+            options);
+
+        var result = await dialog.Result;
+
+        if (result.Canceled)
+            return;
+
+        if (result.Data is not Order editedOrder)
+            return;
+
+        var success = await OrderService.EditOrder(editedOrder);
+        if (success)
+        {
+            orders = await OrderService.GetOrdersAsync();
+
+            Snackbar.Add("Status zamówienia został zmieniony", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Nie udało zmienić się zamówienia", Severity.Error);
+        }
+    }
+
+
+    private async Task AddOrder()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<AddOrderDialog>(
+            "Dodaj zamówienie",
+            options);
+
+        var result = await dialog.Result;
+
+        if (result.Canceled)
+            return;
+
+        if (result.Data is not CreateOrder order)
+            return;
+
+        var success = await OrderService.AddOrder(order);
+
+            if (success)
+            {
+                orders = await OrderService.GetOrdersAsync();
+
+                Snackbar.Add(
+                    "Zamówienie zostało utworzone!",
+                    Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(
+                    "Nie udało się utworzyć zamówienia.",
+                    Severity.Error);
+            }
+        }
+    }

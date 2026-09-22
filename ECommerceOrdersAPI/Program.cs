@@ -42,6 +42,17 @@ builder.Services.AddScoped<ErrorHandlingMiddleware>();
 
 builder.Services.AddAutoMapper(typeof(ECommerceMappingProfile));
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("BlazorClient", policy =>
+    {
+        policy
+            .WithOrigins("https://localhost:7032")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 
 var app = builder.Build();
 
@@ -63,6 +74,8 @@ app.UseHttpsRedirection();
 app.UseCors("BlazorClient");
 
 app.UseAuthorization();
+
+app.UseCors("BlazorClient");
 
 app.MapControllers();
 

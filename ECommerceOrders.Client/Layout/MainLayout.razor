@@ -1,0 +1,97 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider IsDarkMode="@darkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+
+    <!-- TOP BAR -->
+    <MudAppBar Elevation="1" Color="Color.Default">
+
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       OnClick="@DrawerToggle" />
+
+        <MudText Typo="Typo.h6" Class="ml-3">
+            <MudLink Href="/">ECommerce</MudLink>
+        </MudText>
+
+        <MudSpacer />
+
+        <!-- DARK MODE -->
+        <MudIconButton Icon="@(darkMode
+                                                       ? Icons.Material.Filled.LightMode
+                                                       : Icons.Material.Filled.DarkMode)"
+                       Color="Color.Inherit"
+                       OnClick="@DarkModeToggle"
+                       Title="@(darkMode ? "Light mode" : "Dark mode")" />
+
+    </MudAppBar>
+
+
+    <!-- SIDEBAR -->
+    <MudDrawer @bind-Open="drawerOpen"
+               Elevation="2"
+               Variant="DrawerVariant.Responsive"
+               ClipMode="DrawerClipMode.Always"
+               Width="260px">
+
+        <MudDrawerHeader>
+            <MudText Typo="Typo.h6" Class="font-weight-bold">
+                ECommerce
+            </MudText>
+        </MudDrawerHeader>
+        
+        <MudNavMenu Class="pa-3">
+
+            <MudNavLink Href="/"
+                        Match="NavLinkMatch.All"
+                        Icon="@Icons.Material.Filled.Home">
+                Home
+            </MudNavLink>
+
+            <MudNavLink Href="/products"
+                        Match="NavLinkMatch.Prefix"
+                        Icon="@Icons.Material.Filled.Inventory2">
+                Products
+            </MudNavLink>
+
+            <MudNavLink Href="/orders"
+            Match="NavLinkMatch.Prefix"
+            Icon="@Icons.Material.Filled.Reorder">
+            Orders
+        </MudNavLink>
+
+        </MudNavMenu>
+
+    </MudDrawer>
+
+
+    <!-- CONTENT -->
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-6">
+            @Body
+
+        </MudContainer>
+    </MudMainContent>
+
+</MudLayout>
+
+
+@code
+{
+    private bool drawerOpen = true;
+    private bool darkMode = true;
+
+    private void DrawerToggle()
+    {
+        drawerOpen = !drawerOpen;
+    }
+
+    private void DarkModeToggle()
+    {
+        darkMode = !darkMode;
+    }
+}

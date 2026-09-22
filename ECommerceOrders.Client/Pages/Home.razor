@@ -1,0 +1,67 @@
+﻿@page "/"
+<MudAlert Severity="Severity.Normal" Variant="Variant.Filled" Elevation="0" Class="mb-4">
+	Witaj w aplikacji ECommerceOrders! <br />
+	Ta aplikacja umożliwia zarządzanie zamówieniami i produktami w sklepie internetowym. <br />
+	Możesz przeglądać, dodawać, edytować i usuwać zamówienia oraz produkty. <br />
+	Aby rozpocząć, wybierz jedną z opcji w menu nawigacyjnym.
+</MudAlert>
+
+<MudPaper Elevation="4"
+          Class="pa-8"
+          Style="max-width: 420px; margin: 60px auto;">
+
+    <MudStack AlignItems="AlignItems.Center" Spacing="3">
+
+        <MudText Typo="Typo.h4">
+            Witaj!
+        </MudText>
+
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Zaloguj się, aby kontynuować
+        </MudText>
+
+        <MudTextField @bind-Value="Login"
+                      Label="Login"
+                      Variant="Variant.Outlined"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Person"
+                      FullWidth="true" />
+
+        <MudTextField @bind-Value="Password"
+                      Label="Hasło"
+                      Variant="Variant.Outlined"
+                      InputType="@PasswordInput"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@PasswordInputIcon"
+                      OnAdornmentClick="TogglePasswordVisibility"
+                      AdornmentAriaLabel="Pokaż hasło"
+                      FullWidth="true" />
+
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Size="Size.Large"
+                   FullWidth="true">
+            Zaloguj się
+        </MudButton>
+
+    </MudStack>
+
+</MudPaper>
+
+
+
+@code {
+	private string Password { get; set; } = string.Empty;
+	private string Login { get; set; } = string.Empty;
+	private void LoginUser()
+	{
+		// Implement your login logic here
+	}
+	private bool IsPasswordVisible { get; set; } = false;
+	private InputType PasswordInput => IsPasswordVisible ? InputType.Text : InputType.Password;
+	private string PasswordInputIcon => IsPasswordVisible ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
+	private void TogglePasswordVisibility()
+	{
+		IsPasswordVisible = !IsPasswordVisible;
+	}
+}

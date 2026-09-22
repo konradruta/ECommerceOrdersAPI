@@ -1,0 +1,85 @@
+﻿@using ECommerceOrders.Client.Models
+<MudDialog>
+	<DialogContent>
+		
+		<MudTextField T="int"
+			@bind-Value="order.Id"
+			Label="Numer zamówienia"
+			Variant="Variant.Outlined"
+					  Class="mb-3"
+					  ReadOnly="true" />
+
+		<MudSelect T="string"
+			@bind-Value="order.Status"
+			Label="Status zamówienia"
+			Variant="Variant.Outlined"
+					  Class="mb-3" >
+				@foreach (var status in statuses)
+			{
+				<MudSelectItem Value="@status">
+					@status
+				</MudSelectItem>
+			}
+		</MudSelect>
+
+		<MudTextField T="decimal"
+			@bind-Value="order.TotalAmount"
+			Label="Kwota zamówienia"
+			Variant="Variant.Outlined"
+			Class="mb-3"
+			ReadOnly="true" />
+	</DialogContent>
+
+	<DialogActions>
+		<MudButton OnClick="Cancel">
+			Anuluj
+		</MudButton>
+		<MudButton Color="Color.Primary"
+				   Variant="Variant.Filled"
+				   OnClick="Save">
+			Zapisz
+		</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	[CascadingParameter]
+	private IMudDialogInstance MudDialog { get; set; } = null!;
+
+	[Parameter]
+	public Order Order { get; set; } = null!;
+
+	private Order order = null!;
+
+	protected override void OnInitialized()
+	{
+		// Tworzymy kopię, żeby zmiany nie modyfikowały
+		// od razu zamówienia w tabeli.
+		order = new Order
+		{
+			Id = Order.Id,
+			TotalAmount = Order.TotalAmount,
+			Status = Order.Status,
+			CreatedAt = Order.CreatedAt,
+			OrderProducts = Order.OrderProducts
+		};
+	}
+
+	private void Cancel()
+	{
+		MudDialog.Cancel();
+	}
+
+	private void Save()
+	{
+		MudDialog.Close(DialogResult.Ok(order));
+	}
+
+	private readonly List<string> statuses =
+[
+	"New",
+	"W realizacji",
+	"Zakończone",
+	"Anulowane"
+];
+}

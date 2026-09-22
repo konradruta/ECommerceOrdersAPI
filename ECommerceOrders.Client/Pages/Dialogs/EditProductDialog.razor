@@ -1,0 +1,80 @@
+﻿@using ECommerceOrders.Client.Models
+
+<MudDialog>
+
+    <DialogContent>
+
+        <MudTextField @bind-Value="product.Name"
+                      Label="Nazwa"
+                      Variant="Variant.Outlined"
+                      Class="mb-3" />
+
+        <MudTextField @bind-Value="product.Description"
+                      Label="Opis"
+                      Variant="Variant.Outlined"
+                      Lines="3"
+                      Class="mb-3" />
+
+        <MudNumericField T="decimal"
+                         @bind-Value="product.Price"
+                         Label="Cena"
+                         Variant="Variant.Outlined"
+                         Format="0.00"
+                         Adornment="Adornment.End"
+                         AdornmentText="zł"
+                         Class="mb-3" />
+
+        <MudNumericField @bind-Value="product.StockQuantity"
+                         Label="Stan magazynowy"
+                         Variant="Variant.Outlined" />
+
+    </DialogContent>
+
+    <DialogActions>
+
+        <MudButton OnClick="Cancel">
+            Anuluj
+        </MudButton>
+
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Save">
+            Zapisz
+        </MudButton>
+
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public Product Product { get; set; } = null!;
+
+    private Product product = null!;
+
+    protected override void OnInitialized()
+    {
+        product = new Product
+        {
+            Id = Product.Id,
+            Name = Product.Name,
+            Description = Product.Description,
+            Price = Product.Price,
+            StockQuantity = Product.StockQuantity
+        };
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void Save()
+    {
+        MudDialog.Close(DialogResult.Ok(product));
+    }
+}
