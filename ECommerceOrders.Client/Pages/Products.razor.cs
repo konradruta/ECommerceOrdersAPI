@@ -13,15 +13,30 @@ namespace ECommerceOrders.Client.Pages
         [Inject]
         private HttpClient Http { get; set; } = default!;
         private List<Product>? products;
+        private int page = 1;
+        private int pageSize = 10;
         private static readonly JsonSerializerOptions jsonOptions = new()
         {
             PropertyNameCaseInsensitive = true
         };
 
+        private int totalCount = 0;
+        private int totalPages => (int)Math.Ceiling((double)totalCount / pageSize);
+        private int currentPage = 1;
+
         protected override async Task OnInitializedAsync()
         {
-            products = await ProductService.GetProductsAsync();
+            await LoadProductsAsync();
         }
+
+        private async Task LoadProductsAsync()
+        {
+            products = await ProductService.GetProductsAsync(page, pageSize, searchPhase);
+            StateHasChanged();
+        }
+
+        // Dodaj tę właściwość do sprawdzania, czy jest kolejna strana:
+        private bool hasNextPage => products != null && products.Count == pageSize;
 
         private async Task DeleteProduct(int productId)
         {
@@ -58,7 +73,7 @@ namespace ECommerceOrders.Client.Pages
 
             if (success)
             {
-                products = await ProductService.GetProductsAsync();
+                await LoadProductsAsync();
 
                 Snackbar.Add("Produkt został usunięty.", Severity.Info);
             }
@@ -95,7 +110,7 @@ namespace ECommerceOrders.Client.Pages
 
                 if (success)
                 {
-                    products = await ProductService.GetProductsAsync();
+                    await LoadProductsAsync();
 
                     Snackbar.Add("Produkt został zaktualizowany.", Severity.Success);
                 }
@@ -128,7 +143,7 @@ namespace ECommerceOrders.Client.Pages
 
                 if (success)
                 {
-                    products = await ProductService.GetProductsAsync();
+                    await LoadProductsAsync();
 
                     Snackbar.Add("Produkt został dodany.", Severity.Success);
                 }
@@ -148,18 +163,18 @@ namespace ECommerceOrders.Client.Pages
             cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
 
-            if (string.IsNullOrEmpty(searchPhase) || searchPhase.Trim().Length <3)
+            if (string.IsNullOrEmpty(searchPhase) || searchPhase.Trim().Length < 3)
             {
-                products = await ProductService.GetProductsAsync();
-                StateHasChanged();
+                // jeśli brak zapytania lub zbyt krótki string - załaduj normalną listę
+                await LoadProductsAsync();
                 return;
             }
 
             try
             {
                 await Task.Delay(300, token); // Debounce for 300ms
-                var response = await Http.GetFromJsonAsync<List<Product>>($"api/products/search?q={Uri.EscapeDataString(searchPhase)}", jsonOptions, token);
-                products = response ?? new();
+                page = 1;
+                products = await ProductService.GetProductsAsync(page, pageSize, searchPhase);
                 StateHasChanged();
             }
             catch (TaskCanceledException)
@@ -170,6 +185,32 @@ namespace ECommerceOrders.Client.Pages
             {
                 Console.Error.WriteLine(ex.Message);
             }
+        }
+
+        private async Task PrevPage()
+        {
+            if (page <= 1) return;
+            page--;
+            await LoadProductsAsync();
+        }
+
+        private async Task NextPage()
+        {
+            page++;
+            await LoadProductsAsync();
+        }
+
+        private async Task SetPageSize(int size)
+        {
+            pageSize = size;
+            page = 1;
+            await LoadProductsAsync();
+        }
+
+        private async Task OnPageSizeChanged()
+        {
+            // @bind-Value:after does not provide the new value, so use the current pageSize
+            await SetPageSize(pageSize);
         }
     }
 }
