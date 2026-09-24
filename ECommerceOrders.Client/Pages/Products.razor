@@ -71,6 +71,22 @@
 
 </MudTable>
 
-<MudButton>
-    1
-</MudButton>
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-3">
+    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="PrevPage" Disabled="@(currentPage <= 1)">
+        Poprzednia
+    </MudButton>
+
+    <MudText>Strona: @currentPage</MudText>
+
+    <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="NextPage" Disabled="@(currentPage >= totalPages)">
+        Następna
+    </MudButton>
+
+    <MudText Class="ml-4">Ilość pozycji na stronie:</MudText>
+
+    <MudChipSet T="int" SelectedValue="@pageSize" SelectedValueChanged="SetPageSize" CheckMark="false">
+        <MudChip Value="5" Variant="Variant.Outlined" Color="Color.Primary" SelectedColor="Color.Primary" Style="min-width: 42px; text-align: center;">5</MudChip>
+        <MudChip Value="10" Variant="Variant.Outlined" Color="Color.Primary" SelectedColor="Color.Primary" Style="min-width: 42px; text-align: center;">10</MudChip>
+        <MudChip Value="20" Variant="Variant.Outlined" Color="Color.Primary" SelectedColor="Color.Primary" Style="min-width: 42px; text-align: center;">20</MudChip>
+    </MudChipSet>
+</MudStack>
