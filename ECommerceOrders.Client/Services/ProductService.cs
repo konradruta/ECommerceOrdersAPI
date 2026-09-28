@@ -12,17 +12,21 @@ namespace ECommerceOrders.Client.Services
             _httpClient = httpClient;
         }
 
-        public async Task<List<Product>> GetProductsAsync()
+        public async Task<List<Product>> GetProductsAsync(int page = 1, int size = 10, string? search = null)
         {
             //var response = await _httpClient.GetAsync("api/products");
             //response.EnsureSuccessStatusCode();
             //var products = await response.Content.ReadFromJsonAsync<List<Product>>();
             //return products ?? new List<Product>();
 
-            var products = await _httpClient
-            .GetFromJsonAsync<List<Product>>("api/products");
+            var query = $"api/products?page={page}&size={size}";
+            if (!string.IsNullOrWhiteSpace(search))
+                query += $"&search={System.Net.WebUtility.UrlEncode(search)}";
 
-            return products ?? [];
+            var products = await _httpClient
+                .GetFromJsonAsync<List<Product>>(query);
+
+            return products ?? new List<Product>();
         }
 
         public async Task<bool> DeleteProduct(int id)

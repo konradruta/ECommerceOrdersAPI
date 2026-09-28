@@ -36,25 +36,24 @@ namespace ECommerceOrdersAPI.Services
         }
         private const int MaxPageSize = 100;
 
-        public async Task<PagedResult<ProductDto>> GetAndSearchProducts(string productName, int pageNumber, int pageSize, CancellationToken cancellation = default)
+        public async Task<PagedResult<ProductDto>> GetAndSearchProducts(string? productName, int pageNumber, int pageSize, CancellationToken cancellation = default)
         {
-            if (productName == null || productName.Length < 3)
-            {
-                throw new Exception("Search phrase must be at least 3 characters long.");
-            }
-
             pageNumber = pageNumber <= 0 ? 1 : pageNumber;
             pageSize = pageSize <= 0 ? 10 : Math.Min(pageSize, MaxPageSize);
 
-            var query = _dbContext.Products
-                .AsQueryable()
-                .Where(p => p.Name.Contains(productName));
+            var query = _dbContext.Products.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(productName) && productName.Trim().Length >= 3)
+            {
+                var search = productName.Trim();
+                query = query.Where(p => p.Name.Contains(search));
+            }
 
             var totalCount = await query.CountAsync(cancellation);
 
             var products = await query
                 .OrderBy(p => p.Name)
-                .Skip(pageSize * (pageNumber - 1))
+                .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(cancellation);
 
