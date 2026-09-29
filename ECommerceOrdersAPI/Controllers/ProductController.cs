@@ -24,9 +24,9 @@ namespace ECommerceOrdersAPI.Controllers
 
         [HttpGet]
         [Route("search")]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetAndSearchProducts([FromQuery] string q, CancellationToken cancellationToken)
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetAndSearchProducts([FromQuery] string q, int page, int size, CancellationToken cancellationToken)
         {
-            var products = await _productService.GetAndSearchProducts(q, 1, 10, cancellationToken);
+            var products = await _productService.GetAndSearchProducts(q, page, size, cancellationToken);
 
             return Ok(products.Items);
         }
