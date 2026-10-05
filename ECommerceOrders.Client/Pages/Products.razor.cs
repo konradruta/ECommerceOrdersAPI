@@ -2,30 +2,50 @@
 using ECommerceOrders.Client.Pages.Dialogs;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using System.Net.Http.Json;
-using System.Text.Json;
-
 
 namespace ECommerceOrders.Client.Pages
 {
-    public  partial class Products
+    public partial class Products
     {
-        [Inject]
-        private HttpClient Http { get; set; } = default!;
-        private List<Product>? products;
-        private static readonly JsonSerializerOptions jsonOptions = new()
-        {
-            PropertyNameCaseInsensitive = true
-        };
+        private List<Product> products = [];
+        private string searchPhase = string.Empty;
+        private CancellationTokenSource? cancellationTokenSource;
+        private const int pageSize = 10;
+        private int currentPage = 1;
+        private int totalItems;
+
+        private int TotalPages => Math.Max(1, (int)Math.Ceiling(totalItems / (double)pageSize));
 
         protected override async Task OnInitializedAsync()
         {
-            products = await ProductService.GetProductsAsync();
+            await LoadPageAsync(1);
+        }
+
+        private async Task LoadPageAsync(int page)
+        {
+            currentPage = page;
+            totalItems = await ProductService.GetProductsCountAsync(searchPhase);
+            products = await ProductService.GetProductsAsync(page, pageSize, searchPhase);
+        }
+
+        private async Task GoToPageAsync(int page)
+        {
+            if (page < 1 || page > TotalPages || page == currentPage)
+            {
+                return;
+            }
+
+            await LoadPageAsync(page);
+        }
+
+        private IEnumerable<int> GetPageNumbers()
+        {
+            return Enumerable.Range(1, TotalPages);
         }
 
         private async Task DeleteProduct(int productId)
         {
-            var product = products?.FirstOrDefault(p => p.Id == productId);
+            var product = products.FirstOrDefault(p => p.Id == productId);
 
             if (product == null)
             {
@@ -33,9 +53,9 @@ namespace ECommerceOrders.Client.Pages
             }
 
             var parameters = new DialogParameters
-        {
-            {"Message", $"Czy na pewno chcesz usunąć produkt „{product.Name}”?"}
-        };
+            {
+                {"Message", $"Czy na pewno chcesz usunąć produkt „{product.Name}”?"}
+            };
 
             var options = new DialogOptions
             {
@@ -52,14 +72,15 @@ namespace ECommerceOrders.Client.Pages
             var result = await dialog.Result;
 
             if (result.Canceled)
+            {
                 return;
+            }
 
             var success = await ProductService.DeleteProduct(productId);
 
             if (success)
             {
-                products = await ProductService.GetProductsAsync();
-
+                await LoadPageAsync(currentPage);
                 Snackbar.Add("Produkt został usunięty.", Severity.Info);
             }
             else
@@ -71,9 +92,9 @@ namespace ECommerceOrders.Client.Pages
         private async Task EditProduct(Product product)
         {
             var parameters = new DialogParameters
-    {
-        { "Product", product }
-    };
+            {
+                { "Product", product }
+            };
 
             var options = new DialogOptions
             {
@@ -95,8 +116,7 @@ namespace ECommerceOrders.Client.Pages
 
                 if (success)
                 {
-                    products = await ProductService.GetProductsAsync();
-
+                    await LoadPageAsync(currentPage);
                     Snackbar.Add("Produkt został zaktualizowany.", Severity.Success);
                 }
                 else
@@ -128,8 +148,7 @@ namespace ECommerceOrders.Client.Pages
 
                 if (success)
                 {
-                    products = await ProductService.GetProductsAsync();
-
+                    await LoadPageAsync(currentPage);
                     Snackbar.Add("Produkt został dodany.", Severity.Success);
                 }
                 else
@@ -139,36 +158,20 @@ namespace ECommerceOrders.Client.Pages
             }
         }
 
-        private string searchPhase = "";
-        private CancellationTokenSource? cancellationTokenSource;
-
         private async Task OnSearchInput()
         {
             cancellationTokenSource?.Cancel();
             cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
 
-            if (string.IsNullOrEmpty(searchPhase) || searchPhase.Trim().Length <3)
-            {
-                products = await ProductService.GetProductsAsync();
-                StateHasChanged();
-                return;
-            }
-
             try
             {
-                await Task.Delay(300, token); // Debounce for 300ms
-                var response = await Http.GetFromJsonAsync<List<Product>>($"api/products/search?q={Uri.EscapeDataString(searchPhase)}", jsonOptions, token);
-                products = response ?? new();
-                StateHasChanged();
+                await Task.Delay(300, token);
+                await LoadPageAsync(1);
             }
             catch (TaskCanceledException)
             {
                 // użytkownik pisze dalej, ignorujemy poprzedni request
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.Error.WriteLine(ex.Message);
             }
         }
     }

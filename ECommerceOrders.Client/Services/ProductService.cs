@@ -29,6 +29,19 @@ namespace ECommerceOrders.Client.Services
             return products ?? new List<Product>();
         }
 
+        public async Task<int> GetProductsCountAsync(string? search = null)
+        {
+            var query = "api/products/count";
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query += $"?search={System.Net.WebUtility.UrlEncode(search)}";
+            }
+
+            var totalCount = await _httpClient.GetFromJsonAsync<int?>(query);
+            return totalCount ?? 0;
+        }
+
         public async Task<bool> DeleteProduct(int id)
         {
             var response = await _httpClient.DeleteAsync($"api/products/{id}");

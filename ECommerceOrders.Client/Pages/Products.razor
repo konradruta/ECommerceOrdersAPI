@@ -7,70 +7,80 @@
 @inject ISnackbar Snackbar
 
 <MudText Typo="Typo.h4" Class="mb-4">
-    Products
+	Products
 </MudText>
 
 <MudStack Row="true" AlignItems="AlignItems.Center"
-          Justify="Justify.FlexStart"
-          Spacing="2"
+		  Justify="Justify.FlexStart"
+		  Spacing="2"
           Class="mb-4" >
 
-<MudIconButton Icon="@Icons.Material.Filled.Add"
-    Color="Color.Primary"
-    Size="Size.Medium"
-	title="Dodaj produkt" 
+	<MudIconButton Icon="@Icons.Material.Filled.Add"
+				   Color="Color.Primary"
+				   Size="Size.Medium"
+				   title="Dodaj produkt"
     OnClick="AddProduct"/>
 
-<MudTextField @bind-Value="searchPhase"
-              @bind-Value:after="OnSearchInput"
-              Label="Szukaj"
-              Variant="Variant.Outlined"
-              Class="flex-grow-0"
-              Style="max-width: 400px; flex: none" />
+	<MudTextField @bind-Value="searchPhase"
+				  @bind-Value:after="OnSearchInput"
+				  Label="Szukaj"
+				  Variant="Variant.Outlined"
+				  Class="flex-grow-0"
+				  Style="max-width: 400px; flex: none" />
 
-<MudIconButton Icon="@Icons.Material.Filled.Search"
-            Color="Color.Primary"
-            Size="Size.Medium"
-            title="Wyszukaj produkt"
-                   OnClick="OnSearchInput" />
+	<MudIconButton Icon="@Icons.Material.Filled.Search"
+				   Color="Color.Primary"
+				   Size="Size.Medium"
+				   title="Wyszukaj produkt"
+				   OnClick="OnSearchInput" />
 
 
 </MudStack>
 
 <MudTable Items="@products" Hover="true" Striped="true" Bordered="true" Dense="true">
 
-    <HeaderContent>
-        <MudTh>Nazwa</MudTh>
-        <MudTh>Opis</MudTh>
-        <MudTh>Cena</MudTh>
-        <MudTh>Stan</MudTh>
-        <MudTh>Akcje</MudTh>
-    </HeaderContent>
+	<HeaderContent>
+		<MudTh>Nazwa</MudTh>
+		<MudTh>Opis</MudTh>
+		<MudTh>Cena</MudTh>
+		<MudTh>Stan</MudTh>
+		<MudTh>Akcje</MudTh>
+	</HeaderContent>
 
-    <RowTemplate>
-        <MudTd>@context.Name</MudTd>
-        <MudTd>@context.Description</MudTd>
-        <MudTd>@context.Price zł</MudTd>
-        <MudTd>@context.StockQuantity</MudTd>
-        <MudTd Style="width: 1%; white-space: nowrap;">
-            <MudIconButton Icon="@Icons.Material.Filled.Edit"
-            Color="Color.Primary"
-            Size="Size.Small"
-            Class="pa-1"
-            title="Edytuj" 
-            OnClick="@(() => EditProduct(context))" />
+	<RowTemplate>
+		<MudTd>@context.Name</MudTd>
+		<MudTd>@context.Description</MudTd>
+		<MudTd>@context.Price zł</MudTd>
+		<MudTd>@context.StockQuantity</MudTd>
+		<MudTd Style="width: 1%; white-space: nowrap;">
+			<MudIconButton Icon="@Icons.Material.Filled.Edit"
+						   Color="Color.Primary"
+						   Size="Size.Small"
+						   Class="pa-1"
+						   title="Edytuj"
+						   OnClick="@(() => EditProduct(context))" />
 
-            <MudIconButton Icon="@Icons.Material.Filled.Delete"
-            Color="Color.Error"
-            Size="Size.Small"
-            Class="pa-1"
-			title="Usuń"
-            OnClick="@(() => DeleteProduct(context.Id))" />
-        </MudTd>
-    </RowTemplate>
+			<MudIconButton Icon="@Icons.Material.Filled.Delete"
+						   Color="Color.Error"
+						   Size="Size.Small"
+						   Class="pa-1"
+						   title="Usuń"
+						   OnClick="@(() => DeleteProduct(context.Id))" />
+		</MudTd>
+	</RowTemplate>
 
 </MudTable>
 
-<MudButton>
-    1
-</MudButton>
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-4 flex-wrap">
+	<MudText Typo="Typo.body2">Strony:</MudText>
+
+	@foreach (var pageNumber in GetPageNumbers())
+	{
+		<MudButton Variant="@(currentPage == pageNumber ? Variant.Filled : Variant.Outlined)"
+				   Color="@(currentPage == pageNumber ? Color.Primary : Color.Default)"
+				   Size="Size.Small"
+				   OnClick="@(() => GoToPageAsync(pageNumber))">
+			@pageNumber
+		</MudButton>
+	}
+</MudStack>
