@@ -43,6 +43,15 @@ namespace ECommerceOrders.Client.Pages
             return Enumerable.Range(1, TotalPages);
         }
 
+        private async Task LoadProductsAsync()
+        {
+            products = await ProductService.GetProductsAsync(page, pageSize, searchPhase);
+            StateHasChanged();
+        }
+
+        // Dodaj tę właściwość do sprawdzania, czy jest kolejna strana:
+        private bool hasNextPage => products != null && products.Count == pageSize;
+
         private async Task DeleteProduct(int productId)
         {
             var product = products.FirstOrDefault(p => p.Id == productId);
