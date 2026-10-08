@@ -31,15 +31,24 @@ namespace ECommerceOrders.Client.Services
 
         public async Task<int> GetProductsCountAsync(string? search = null)
         {
-            var query = "api/products/count";
-
-            if (!string.IsNullOrWhiteSpace(search))
+            try
             {
-                query += $"?search={System.Net.WebUtility.UrlEncode(search)}";
-            }
+                var query = "api/products/count";
 
-            var totalCount = await _httpClient.GetFromJsonAsync<int?>(query);
-            return totalCount ?? 0;
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    query += $"?search={System.Net.WebUtility.UrlEncode(search)}";
+                }
+
+                var totalCount = await _httpClient.GetFromJsonAsync<int?>(query);
+                return totalCount ?? 0;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Błąd przy pobieraniu liczby produktów: {ex.Message}");
+                // Fallback: zwróć 0, aby komponent mógł obsłużyć błąd
+                return 0;
+            }
         }
 
         public async Task<bool> DeleteProduct(int id)

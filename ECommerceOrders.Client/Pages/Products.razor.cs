@@ -23,9 +23,31 @@ namespace ECommerceOrders.Client.Pages
 
         private async Task LoadPageAsync(int page)
         {
-            currentPage = page;
-            totalItems = await ProductService.GetProductsCountAsync(searchPhase);
-            products = await ProductService.GetProductsAsync(page, pageSize, searchPhase);
+            try
+            {
+                currentPage = page;
+                // Jeśli wyszukiwanie jest aktywne, pobierz wszystkie wyniki i policzy je
+                if (!string.IsNullOrWhiteSpace(searchPhase))
+                {
+                    // Pobierz wszystkie produkty pasujące do wyszukiwania (bez paginacji)
+                    var allProducts = await ProductService.GetProductsAsync(1, 1000, searchPhase);
+                    totalItems = allProducts.Count;
+                }
+                else
+                {
+                    // Dla normalnego widoku bez wyszukiwania, spróbuj pobrać liczbę elementów
+                    totalItems = await ProductService.GetProductsCountAsync(searchPhase);
+                }
+
+                products = await ProductService.GetProductsAsync(page, pageSize, searchPhase);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Błąd przy ładowaniu produktów: {ex.Message}");
+                // Fallback: załaduj produkty bez liczby stron
+                products = [];
+                totalItems = 0;
+            }
         }
 
         private async Task GoToPageAsync(int page)
@@ -41,12 +63,6 @@ namespace ECommerceOrders.Client.Pages
         private IEnumerable<int> GetPageNumbers()
         {
             return Enumerable.Range(1, TotalPages);
-        }
-
-        private async Task LoadProductsAsync()
-        {
-            products = await ProductService.GetProductsAsync(page, pageSize, searchPhase);
-            StateHasChanged();
         }
 
         // Dodaj tę właściwość do sprawdzania, czy jest kolejna strana:
