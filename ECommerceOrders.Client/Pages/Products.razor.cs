@@ -7,14 +7,17 @@ namespace ECommerceOrders.Client.Pages
 {
     public partial class Products
     {
-        private List<Product> products = [];
+        private PagedResult<Product>? result;
         private string searchPhase = string.Empty;
         private CancellationTokenSource? cancellationTokenSource;
-        private const int pageSize = 10;
+        private int pageSize = 5;
+        private readonly int[] pageSizeOptions = [5, 10, 20, 50];
         private int currentPage = 1;
-        private int totalItems;
 
-        private int TotalPages => Math.Max(1, (int)Math.Ceiling(totalItems / (double)pageSize));
+        private List<Product> products => result?.Items ?? [];
+        private int totalItems => result?.TotalCount ?? 0;
+        private int TotalPages => Math.Max(1, result?.TotalPages ?? 1);
+        private bool hasNextPage => result?.HasNextPage ?? false;
 
         protected override async Task OnInitializedAsync()
         {
@@ -26,28 +29,31 @@ namespace ECommerceOrders.Client.Pages
             try
             {
                 currentPage = page;
-                // Jeśli wyszukiwanie jest aktywne, pobierz wszystkie wyniki i policzy je
-                if (!string.IsNullOrWhiteSpace(searchPhase))
-                {
-                    // Pobierz wszystkie produkty pasujące do wyszukiwania (bez paginacji)
-                    var allProducts = await ProductService.GetProductsAsync(1, 1000, searchPhase);
-                    totalItems = allProducts.Count;
-                }
-                else
-                {
-                    // Dla normalnego widoku bez wyszukiwania, spróbuj pobrać liczbę elementów
-                    totalItems = await ProductService.GetProductsCountAsync(searchPhase);
-                }
+                result = await ProductService.GetProductsAsync(searchPhase, page, pageSize);
 
-                products = await ProductService.GetProductsAsync(page, pageSize, searchPhase);
+                // Jeśli strona już nie istnieje (np. po usunięciu ostatniego rekordu), cofnij na ostatnią
+                if (result.Items.Count == 0 && result.TotalPages > 0 && page > result.TotalPages)
+                {
+                    currentPage = result.TotalPages;
+                    result = await ProductService.GetProductsAsync(searchPhase, currentPage, pageSize);
+                }
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"Błąd przy ładowaniu produktów: {ex.Message}");
-                // Fallback: załaduj produkty bez liczby stron
-                products = [];
-                totalItems = 0;
+                result = new PagedResult<Product> { PageNumber = page, PageSize = pageSize };
             }
+        }
+
+        private async Task OnPageSizeChanged(int newSize)
+        {
+            pageSize = newSize;
+            await LoadPageAsync(1); 
+        }
+
+        private async Task OnPageChanged(int page)
+        {
+            await GoToPageAsync(page);
         }
 
         private async Task GoToPageAsync(int page)
@@ -64,9 +70,6 @@ namespace ECommerceOrders.Client.Pages
         {
             return Enumerable.Range(1, TotalPages);
         }
-
-        // Dodaj tę właściwość do sprawdzania, czy jest kolejna strana:
-        private bool hasNextPage => products != null && products.Count == pageSize;
 
         private async Task DeleteProduct(int productId)
         {
@@ -94,9 +97,9 @@ namespace ECommerceOrders.Client.Pages
                 parameters,
                 options);
 
-            var result = await dialog.Result;
+            var dialogResult = await dialog.Result;
 
-            if (result.Canceled)
+            if (dialogResult.Canceled)
             {
                 return;
             }
@@ -133,9 +136,9 @@ namespace ECommerceOrders.Client.Pages
                 parameters,
                 options);
 
-            var result = await dialog.Result;
+            var dialogResult = await dialog.Result;
 
-            if (!result.Canceled && result.Data is Product editedProduct)
+            if (!dialogResult.Canceled && dialogResult.Data is Product editedProduct)
             {
                 var success = await ProductService.EditProduct(editedProduct);
 
@@ -165,9 +168,9 @@ namespace ECommerceOrders.Client.Pages
                 options
             );
 
-            var result = await dialog.Result;
+            var dialogResult = await dialog.Result;
 
-            if (!result.Canceled && result.Data is Product product)
+            if (!dialogResult.Canceled && dialogResult.Data is Product product)
             {
                 var success = await ProductService.AddProduct(product);
 

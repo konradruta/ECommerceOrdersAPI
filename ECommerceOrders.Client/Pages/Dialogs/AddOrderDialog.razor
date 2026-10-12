@@ -104,7 +104,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        products = await ProductService.GetProductsAsync();
+        var result = await ProductService.GetProductsAsync();
+        products = result.Items;
     }
 
     private void AddProduct(int productId)

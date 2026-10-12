@@ -28,7 +28,7 @@ namespace ECommerceOrdersAPI.Controllers
         {
             var products = await _productService.GetAndSearchProducts(q, page, size, cancellationToken);
 
-            return Ok(products.Items);
+            return Ok(products);
         }
 
         [HttpGet("{id}")]

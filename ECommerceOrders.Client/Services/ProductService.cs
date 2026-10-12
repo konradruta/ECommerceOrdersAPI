@@ -12,42 +12,41 @@ namespace ECommerceOrders.Client.Services
             _httpClient = httpClient;
         }
 
-        public async Task<List<Product>> GetProductsAsync(int page = 1, int size = 10, string? search = null)
-        {
-            //var response = await _httpClient.GetAsync("api/products");
-            //response.EnsureSuccessStatusCode();
-            //var products = await response.Content.ReadFromJsonAsync<List<Product>>();
-            //return products ?? new List<Product>();
+        //public async Task<List<Product>> GetProductsAsync(int page = 1, int size = 10, string? search = null)
+        //{
+        //    //var response = await _httpClient.GetAsync("api/products");
+        //    //response.EnsureSuccessStatusCode();
+        //    //var products = await response.Content.ReadFromJsonAsync<List<Product>>();
+        //    //return products ?? new List<Product>();
 
-            var query = $"api/products?page={page}&size={size}";
-            if (!string.IsNullOrWhiteSpace(search))
-                query += $"&search={System.Net.WebUtility.UrlEncode(search)}";
+        //    var query = $"api/products?page={page}&size={size}";
+        //    if (!string.IsNullOrWhiteSpace(search))
+        //        query += $"&search={System.Net.WebUtility.UrlEncode(search)}";
 
-            var products = await _httpClient
-                .GetFromJsonAsync<List<Product>>(query);
+        //    var products = await _httpClient
+        //        .GetFromJsonAsync<List<Product>>(query);
 
-            return products ?? new List<Product>();
-        }
+        //    return products ?? new List<Product>();
+        //}
 
-        public async Task<int> GetProductsCountAsync(string? search = null)
+        public async Task<PagedResult<Product>> GetProductsAsync(string? search = null, int page = 1, int size = 10, CancellationToken ct = default)
         {
             try
             {
-                var query = "api/products/count";
+                var url = $"api/products/search?page={page}&size={size}";
 
                 if (!string.IsNullOrWhiteSpace(search))
                 {
-                    query += $"?search={System.Net.WebUtility.UrlEncode(search)}";
+                    url += $"&q={Uri.EscapeDataString(search)}";
                 }
 
-                var totalCount = await _httpClient.GetFromJsonAsync<int?>(query);
-                return totalCount ?? 0;
+                var result = await _httpClient.GetFromJsonAsync<PagedResult<Product>>(url, ct);
+                return result ?? new PagedResult<Product> { PageNumber = page, PageSize = size };
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Błąd przy pobieraniu liczby produktów: {ex.Message}");
-                // Fallback: zwróć 0, aby komponent mógł obsłużyć błąd
-                return 0;
+                Console.Error.WriteLine($"Błąd przy pobieraniu produktów: {ex.Message}");
+                return new PagedResult<Product> { PageNumber = page, PageSize = size };
             }
         }
 

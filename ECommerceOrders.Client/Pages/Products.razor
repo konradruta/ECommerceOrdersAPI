@@ -71,16 +71,43 @@
 
 </MudTable>
 
-<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-4 flex-wrap">
-	<MudText Typo="Typo.body2">Strony:</MudText>
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mt-4 flex-wrap" Spacing="2">
 
-	@foreach (var pageNumber in GetPageNumbers())
-	{
-		<MudButton Variant="@(currentPage == pageNumber ? Variant.Filled : Variant.Outlined)"
-				   Color="@(currentPage == pageNumber ? Color.Primary : Color.Default)"
-				   Size="Size.Small"
-				   OnClick="@(() => GoToPageAsync(pageNumber))">
-			@pageNumber
-		</MudButton>
-	}
+	<MudText Typo="Typo.body2">
+		@if (totalItems == 0)
+		{
+			<span>Brak wyników</span>
+		}
+		else
+		{
+			var from = (currentPage - 1) * pageSize + 1;
+			var to = Math.Min(currentPage * pageSize, totalItems);
+			<span>@from–@to z @totalItems</span>
+		}
+	</MudText>
+
+	<MudPagination Count="@TotalPages"
+				   Selected="@currentPage"
+				   SelectedChanged="OnPageChanged"
+				   ShowFirstButton="true"
+				   ShowLastButton="true"
+				   BoundaryCount="1"
+				   MiddleCount="3"
+				   Color="Color.Primary" />
+
+	<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+		<MudText Typo="Typo.body2">Wierszy na stronie:</MudText>
+		<MudSelect T="int"
+				   Value="@pageSize"
+				   ValueChanged="OnPageSizeChanged"
+				   Variant="Variant.Outlined"
+				   Dense="true"
+				   Style="width: 90px;">
+			@foreach (var option in pageSizeOptions)
+			{
+				<MudSelectItem T="int" Value="@option">@option</MudSelectItem>
+			}
+		</MudSelect>
+	</MudStack>
+
 </MudStack>
