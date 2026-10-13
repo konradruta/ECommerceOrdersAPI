@@ -9,6 +9,8 @@ namespace ECommerceOrdersAPI.Services
     public interface IOrderService
     {
         Task<IEnumerable<OrderDto>> GetOrders();
+
+        Task<PagedResult<OrderDto>> GetAndSearchOrders(string? orderNumber, int pageNumber, int pageSize, CancellationToken cancellation = default);
         Task<OrderDto> GetOrderById(int id);
         Task<int> CreateOrder(AddOrderDto dto);
         Task<bool> EditOrder(int id, EditOrderDto dto);
@@ -34,6 +36,36 @@ namespace ECommerceOrdersAPI.Services
             var ordersMap = _mapper.Map<List<OrderDto>>(orders);
 
             return ordersMap;
+        }
+
+        public async Task<PagedResult<OrderDto>> GetAndSearchOrders(string? orderNumber, int pageNumber, int pageSize, CancellationToken cancellation = default)
+        {
+            pageNumber = pageNumber <= 0 ? 1 : pageNumber;
+            pageSize = pageSize <= 0 ? 10 : Math.Min(pageSize, 100);
+
+            var query = _dbContext.Orders.AsNoTracking();
+
+            if (!string.IsNullOrEmpty(orderNumber))
+            {
+                query = query.Where(o => o.Id.ToString().Contains(orderNumber));
+            }
+
+            var totalCount = await query.CountAsync(cancellation);
+
+            var oders= await query.OrderByDescending(o => o.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Include(o => o.OrderProducts)
+                .ThenInclude(op => op.Product)
+                .ToListAsync(cancellation);
+
+            return new PagedResult<OrderDto>
+            {
+                Items = _mapper.Map<List<OrderDto>>(oders),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
         }
 
         public async Task<OrderDto> GetOrderById(int id)

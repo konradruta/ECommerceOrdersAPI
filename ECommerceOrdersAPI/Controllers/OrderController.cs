@@ -22,6 +22,14 @@ namespace ECommerceOrdersAPI.Controllers
             return Ok(orders);
         }
 
+        [HttpGet]
+        [Route("search")]
+        public async Task <ActionResult<IEnumerable<OrderDto>>> GetAndSearchOrders ([FromQuery] string orderNumber, int page, int size, CancellationToken cancellationToken)
+        {
+            var orders = await _orderService.GetAndSearchOrders(orderNumber, page, size, cancellationToken);
+            return Ok(orders);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderDto>> GetOrdersById(int id)
         {
