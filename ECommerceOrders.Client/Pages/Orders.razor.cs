@@ -1,18 +1,68 @@
 ﻿using ECommerceOrders.Client.Models;
 using ECommerceOrders.Client.Pages.Dialogs;
+using ECommerceOrders.Client.Services;
 using MudBlazor;
 
 namespace ECommerceOrders.Client.Pages
 {
     public partial class Orders
     {
-        private List<Order>? orders;
-
-        private string searchPhase = "";
+        private List<Order>? orders => result?.Items ?? [];
+        private PagedResult<Order>? result;
+        private string searchPhase = string.Empty;
+        private CancellationTokenSource? cancellationTokenSource;
+        private int pageSize = 5;
+        private readonly int[] pageSizeOptions = [5, 10, 20, 50];
+        private int currentPage = 1;
+        private int totalItems => result?.TotalCount ?? 0;
+        private int TotalPages => Math.Max(1, result?.TotalPages ?? 1);
+        private bool hasNextPage => result?.HasNextPage ?? false;
 
         protected override async Task OnInitializedAsync()
         {
-            orders = await OrderService.GetOrdersAsync();
+            //orders = await OrderService.GetOrdersAsync();
+            await LoadPageAsync(1);
+        }
+
+        private async Task LoadPageAsync(int page)
+        {
+            try
+            {
+                currentPage = page;
+                result = await OrderService.GetOrdersAsync(searchPhase, page, pageSize);
+
+                // Jeśli strona już nie istnieje (np. po usunięciu ostatniego rekordu), cofnij na ostatnią
+                if (result.Items.Count == 0 && result.TotalPages > 0 && page > result.TotalPages)
+                {
+                    currentPage = result.TotalPages;
+                    result = await OrderService.GetOrdersAsync(searchPhase, currentPage, pageSize);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Błąd przy ładowaniu zamówień: {ex.Message}");
+                result = new PagedResult<Order> { PageNumber = page, PageSize = pageSize };
+            }
+        }
+        private async Task OnPageSizeChanged(int newSize)
+        {
+            pageSize = newSize;
+            await LoadPageAsync(1);
+        }
+
+        private async Task OnPageChanged(int page)
+        {
+            await GoToPageAsync(page);
+        }
+
+        private async Task GoToPageAsync(int page)
+        {
+            if (page < 1 || page > TotalPages || page == currentPage)
+            {
+                return;
+            }
+
+            await LoadPageAsync(page);
         }
 
         private async Task DleteOrder(int orderId)
@@ -47,7 +97,7 @@ namespace ECommerceOrders.Client.Pages
             var success = await OrderService.DeleteOrder(orderId);
             if (success)
             {
-                orders = await OrderService.GetOrdersAsync();
+                await LoadPageAsync(currentPage);
 
                 Snackbar.Add("Zamówienie zostało usunięte", Severity.Warning);
             }
@@ -87,7 +137,7 @@ namespace ECommerceOrders.Client.Pages
             var success = await OrderService.EditOrder(editedOrder);
             if (success)
             {
-                orders = await OrderService.GetOrdersAsync();
+                await LoadPageAsync(currentPage);
 
                 Snackbar.Add("Status zamówienia został zmieniony", Severity.Success);
             }
@@ -123,7 +173,7 @@ namespace ECommerceOrders.Client.Pages
 
             if (success)
             {
-                orders = await OrderService.GetOrdersAsync();
+                await LoadPageAsync(currentPage);
 
                 Snackbar.Add(
                     "Zamówienie zostało utworzone!",

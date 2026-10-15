@@ -14,6 +14,7 @@
 
 <MudStack Row="true"
           AlignItems="AlignItems.Center"
+          Justify="Justify.FlexStart"
           Spacing="2"
           Class="mb-4">
 
@@ -26,11 +27,17 @@
     <MudTextField @bind-Value="searchPhase"
                   Label="Szukaj"
                   Variant="Variant.Outlined"
-                  Style="width: 100%; max-width: 400px;" />
+                  Style="max-width: 400px; flex: none" />
+
+    <MudIconButton Icon="@Icons.Material.Filled.Search"
+                   Color="Color.Primary"
+                   Size="Size.Medium"
+                   title="Wyszukaj zamówienie"
+                   OnClick="OnSearchInput" />
 
 </MudStack>
 
-@if (orders is null)
+@if (result is null)
 {
     <MudProgressCircular Indeterminate="true" />
 }
@@ -131,4 +138,51 @@ else
         </RowTemplate>
 
     </MudTable>
+}
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mt-4 flex-wrap" Spacing="2">
+
+    <MudText Typo="Typo.body2">
+        @if (totalItems == 0)
+        {
+            <span>Brak wyników</span>
+        }
+        else
+        {
+            var from = (currentPage - 1) * pageSize + 1;
+            var to = Math.Min(currentPage * pageSize, totalItems);
+            <span>@from–@to z @totalItems</span>
+        }
+    </MudText>
+
+    <MudPagination Count="@TotalPages"
+                   Selected="@currentPage"
+                   SelectedChanged="OnPageChanged"
+                   ShowFirstButton="true"
+                   ShowLastButton="true"
+                   BoundaryCount="1"
+                   MiddleCount="3"
+                   Color="Color.Primary" />
+
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+        <MudText Typo="Typo.body2">Wierszy na stronie:</MudText>
+        <MudSelect T="int"
+                   Value="@pageSize"
+                   ValueChanged="OnPageSizeChanged"
+                   Variant="Variant.Outlined"
+                   Dense="true"
+                   Style="width: 90px;">
+            @foreach (var option in pageSizeOptions)
+            {
+                <MudSelectItem T="int" Value="@option">@option</MudSelectItem>
+            }
+        </MudSelect>
+    </MudStack>
+
+</MudStack>
+@code {
+	private void OnSearchInput()
+	{
+		throw new NotImplementedException();
+	}
 }

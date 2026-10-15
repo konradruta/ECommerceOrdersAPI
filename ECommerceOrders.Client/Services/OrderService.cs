@@ -12,12 +12,33 @@ namespace ECommerceOrders.Client.Services
             _httpClient = httpClient;
         }
 
-        public async Task<List<Order>> GetOrdersAsync()
-        {
-            var orders = await _httpClient
-            .GetFromJsonAsync<List<Order>>("api/orders");
+        //public async Task<List<Order>> GetOrdersAsync()
+        //{
+        //    var orders = await _httpClient
+        //    .GetFromJsonAsync<List<Order>>("api/orders");
 
-            return orders ?? [];
+        //    return orders ?? [];
+        //}
+
+        public async Task<PagedResult<Order>> GetOrdersAsync(string? search = null, int page = 1, int size = 10, CancellationToken ct = default)
+        {
+            try
+            {
+                var url = $"api/orders/search?page={page}&size={size}";
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    url += $"&q={Uri.EscapeDataString(search)}";
+                }
+
+                var result = await _httpClient.GetFromJsonAsync<PagedResult<Order>>(url, ct);
+                return result ?? new PagedResult<Order> { PageNumber = page, PageSize = size };
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Błąd przy pobieraniu zamówień: {ex.Message}");
+                return new PagedResult<Order> { PageNumber = page, PageSize = size };
+            }
         }
 
         public async Task<bool> DeleteOrder(int id)
