@@ -41,6 +41,7 @@ Blazor WebAssembly (ECommerceOrders.Client)
 ## Endpointy API
 ### Orders
 - GET `/api/orders` – pobranie listy wszystkich zamówień
+- GET `/api/orders/search` - wyszukiwanie zamówień po numerze oraz paginacja rezultatów
 - GET `/api/orders/{id}` – pobranie zamówienia po ID
 - POST `/api/orders` – utworzenie nowego zamówienia
 - PUT `/api/orders/{id}` – edycja zamówienia
@@ -48,6 +49,7 @@ Blazor WebAssembly (ECommerceOrders.Client)
 
 ### Products
 - GET `/api/products` – pobranie listy wszystkich produktów
+- GET `/api/products/search` - wyszukiwanie produktów po nazwie oraz paginacja rezultatów
 - GET `/api/products/{id}` – pobranie produktu po ID
 - POST `/api/products` – dodanie nowego produktu
 - PUT `/api/products/{id}` – edycja produktu
